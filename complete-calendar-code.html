@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Tile Calendar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3f37c9;
+            --accent-color: #f72585;
+            --light-bg: #f8f9fa;
+            --light-surface: #ffffff;
+            --light-text: #212529;
+            --light-text-secondary: #6c757d;
+            --light-border: #dee2e6;
+            --light-hover: #e9ecef;
+            --dark-bg: #121212;
+            --dark-surface: #1e1e1e;
+            --dark-surface-2: #2d2d2d;
+            --dark-text: #f8f9fa;
+            --dark-text-secondary: #adb5bd;
+            --dark-border: #373737;
+            --dark-hover: #333333;
+            --saturday-color: #4895ef;
+            --sunday-color: #f72585;
+            --holiday-color: #f72585;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --rounded-sm: 0.375rem;
+            --rounded-md: 0.5rem;
+            --rounded-lg: 0.75rem;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.25s ease;
+            --grid-gap: 0.5rem;
+            --header-height: 60px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--light-text);
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        body.dark-mode {
+            background-color: var(--dark-bg);
+            color: var(--dark-text);
+        }
+
+        /* App Header */
+        .app-header {
+            height: var(--header-height);
+            background-color: var(--light-surface);
+            border-bottom: 1px solid var(--light-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 10;
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .app-header.dark-mode {
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .app-title svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Search Input */
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background-color: var(--light-surface);
+            border: 1px solid var(--light-border);
+            border-radius: var(--rounded-md);
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            color: var(--light-text);
+            width: 180px;
+            transition: all var(--transition-normal);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            width: 220px;
+        }
+
+        .search-input.dark-mode {
+            background-color: var(--dark-surface-2);
+            color: var(--dark-text);
+            border-color: var(--dark-border);
+        }
+
+        .search-input.dark-mode::placeholder {
+            color: var(--dark-text-secondary);
+        }
+
+        .search-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--light-text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-button.dark-mode {
+            color: var(--dark-text-secondary);
+        }
+
+        .search-button:hover {
+            color: var(--primary-color);
+        }
+
+        /* Error Message */
+        .error-message {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            background-color: var(--light-surface);
+            color: var(--accent-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--rounded-sm);
+            font-size: 0.75rem;
+            box-shadow: var(--shadow-md);
+            z-index: 20;
+            white-space: nowrap;
+            display: none;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .error-message.dark-mode {
+            background-color: var(--dark-surface);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Toggle Switch */
+        .mode-switch {
+            position: relative;
+        }
+
+        .toggle-switch {
+            width: 48px;
+            height: 24px;
+            border-radius: 12px;
+            background-color: var(--light-text-secondary);
+            position: relative;
+            cursor: pointer;
+            transition: background-color var(--transition-normal);
+        }
+
+        .toggle-switch.dark-mode {
+            background-color: var(--primary-color);
+        }
+
+        .toggle-switch-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--light-surface);
+            transition: transform var(--transition-normal);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toggle-switch.dark-mode .toggle-switch-slider {
+            transform: translateX(24px);
+        }
+
+        /* Calendar Container */
+        .calendar-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: var(--light-surface);
+            transition: background-color var(--transition-normal);
+        }
+
+        .calendar-container.dark-mode {
+            background-color: var(--dark-surface);
+        }
+
+        /* Week Header */
+        .week-header {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            background-color: var(--light-surface);
+            border-bottom: 1px solid var(--light-border);
+            padding: 0.75rem 0.5rem;
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .week-header.dark-mode {
+            background-color: var(--dark-surface);
+            border-color: var(--dark-border);
+        }
+
+        .week-header > div {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--light-text-secondary);
+            transition: color var(--transition-normal);
+        }
+
+        .week-header.dark-mode > div {
+            color: var(--dark-text-secondary);
+        }
+
+        .today-date {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            background-color: var(--primary-light);
+            color: #ffffff;
+            border-radius: var(--rounded-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            height: 32px;
+        }
+
+        .today-date:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        .today-weekday {
+            color: var(--primary-color) !important;
+            position: relative;
+        }
+
+        .today-weekday::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 2px;
+            background-color: var(--primary-color);
+            border-radius: 1px;
+        }
+
+        .dark-mode .today-weekday {
+            color: var(--primary-light) !important;
+        }
+
+        .dark-mode .today-weekday::after {
+            background-color: var(--primary-light);
+        }
+
+        /* Calendar Grid Container */
+        .calendar-grid-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--grid-gap);
+            scrollbar-width: thin;
+            scrollbar-color: var(--light-text-secondary) transparent;
+            scroll-behavior: smooth;
+        }
+
+        .calendar-grid-container.dark-mode {
+            scrollbar-color: var(--dark-text-secondary) transparent;
+        }
+
+        .calendar-grid-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .calendar-grid-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .calendar-grid-container::-webkit-scrollbar-thumb {
+            background-color: var(--light-text-secondary);
+            border-radius: 3px;
+        }
+
+        .calendar-grid-container.dark-mode::-webkit-scrollbar-thumb {
+            background-color: var(--dark-text-secondary);
+        }
+
+        /* Calendar Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: var(--grid-gap);
+            min-height: 100%;
+        }
+
+        /* Month Column */
+        .month-column {
+            background-color: var(--light-surface);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--light-border);
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--light-text-secondary);
+            transition: all var(--transition-normal);
+            user-select: none;
+            line-height: 1.4;
+        }
+
+        .month-column.dark-mode {
+            background-color: var(--dark-surface-2);
+            color: var(--dark-text-secondary);
+            border-color: var(--dark-border);
+        }
+
+        .month-column:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+        }
+
+        .dark-mode .month-column:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Day Cell - with tooltip optimization */
+        .day {
+            aspect-ratio: 1 / 1;
+            background-color: var(--light-surface);
+            border-radius: var(--rounded-md);
+            border: 1px solid var(--light-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            overflow: visible; /* Changed from 'hidden' to show tooltip */
+            transition: all var(--transition-normal);
+            will-change: transform, box-shadow, border-color;
+        }
+
+        .day.dark-mode {
+            background-color: var(--dark-surface-2);
+            border-color: var(--dark-border);
+        }
+
+        .day.odd-month {
+            background-color: var(--light-bg);
+        }
+
+        .day.even-month {
+            background-color: var(--light-surface);
+        }
+
+        .day.dark-mode.odd-month {
+            background-color: var(--dark-surface);
+        }
+
+        .day.dark-mode.even-month {
+            background-color: var(--dark-surface-2);
+        }
+
+        .day:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+            z-index: 5;
+        }
+
+        .dark-mode .day:hover {
+            border-color: var(--primary-color);
+        }
+
+        .day-number {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--light-text);
+            transition: color var(--transition-normal);
+        }
+
+        .day-number.dark-mode {
+            color: var(--dark-text);
+        }
+
+        /* Special day colors */
+        .day-number.saturday {
+            color: var(--saturday-color);
+        }
+
+        .day-number.sunday, 
+        .day-number.holiday {
+            color: var(--sunday-color);
+        }
+
+        .day-number.dark-mode.saturday {
+            color: var(--saturday-color);
+        }
+
+        .day-number.dark-mode.sunday, 
+        .day-number.dark-mode.holiday {
+            color: var(--holiday-color);
+        }
+
+        /* Today Styling */
+        .day.today {
+            background-color: rgba(67, 97, 238, 0.08);
+            border-color: var(--primary-color);
+            border-width: 2px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .day.today.dark-mode {
+            background-color: rgba(67, 97, 238, 0.15);
+        }
+
+        .day.today::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+        }
+
+        /* Selected Day */
+        .day.selected {
+            background-color: rgba(247, 37, 133, 0.08);
+            border-color: var(--accent-color);
+            border-width: 2px;
+        }
+
+        .day.selected.dark-mode {
+            background-color: rgba(247, 37, 133, 0.15);
+        }
+
+        .day.selected::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--accent-color);
+        }
+
+        /* Tooltip - Enhanced version with faster appearance */
+        .day[data-tooltip]::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(33, 37, 41, 0.95);
+            color: white;
+            padding: 0.75rem;
+            border-radius: var(--rounded-md);
+            font-size: 0.875rem;
+            white-space: pre-line;
+            z-index: 20;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: max-content;
+            max-width: 220px;
+            text-align: center;
+            line-height: 1.5;
+            font-weight: 500;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.1s ease, visibility 0.1s ease;
+            will-change: opacity, visibility;
+        }
+
+        .day[data-tooltip]::after {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 2px);
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(33, 37, 41, 0.95);
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.1s ease, visibility 0.1s ease;
+            will-change: opacity, visibility;
+        }
+
+        /* Add touch device optimization */
+        @media (hover: hover) {
+            .day[data-tooltip]:hover::before,
+            .day[data-tooltip]:hover::after {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+        
+        /* For touch devices */
+        @media (hover: none) {
+            .day.active::before,
+            .day.active::after {
+                opacity: 1;
+                visibility: visible;
+            }
+        }
+
+        .day.dark-mode[data-tooltip]::before {
+            background-color: rgba(46, 46, 46, 0.95);
+            color: #f8f9fa;
+            border: 1px solid rgba(67, 97, 238, 0.3);
+        }
+        
+        .day.dark-mode[data-tooltip]::after {
+            border-top-color: rgba(46, 46, 46, 0.95);
+        }
+        
+        /* Tooltip styles - we keep these for backward compatibility */
+        .tooltip-date {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        
+        .tooltip-holiday {
+            color: var(--accent-color);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        
+        .tooltip-days {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.8rem;
+            font-weight: 400;
+            font-style: italic;
+        }
+        
+        .dark-mode .tooltip-date {
+            color: var(--primary-light);
+        }
+        
+        .dark-mode .tooltip-holiday {
+            color: var(--accent-color);
+        }
+
+        .day[data-tooltip]:hover::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--light-text) transparent transparent transparent;
+        }
+
+        /* Highlight Animation */
+        @keyframes highlight-pulse {
+            0% { transform: scale(1); }
+            50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 20px rgba(67, 97, 238, 0.4);
+                border-color: var(--primary-color);
+            }
+            100% { transform: scale(1); }
+        }
+
+        .highlight-day {
+            animation: highlight-pulse 1s ease-in-out;
+            animation-iteration-count: 3;
+        }
+
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            :root {
+                --grid-gap: 0.25rem;
+            }
+
+            .app-header {
+                padding: 0 1rem;
+            }
+
+            .search-input {
+                width: 140px;
+            }
+
+            .search-input:focus {
+                width: 180px;
+            }
+
+            .day-number {
+                font-size: 0.875rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .app-title span {
+                display: none;
+            }
+
+            .search-input {
+                width: 120px;
+            }
+
+            .search-input:focus {
+                width: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- App Header -->
+    <header class="app-header">
+        <div class="app-title" style="cursor: pointer;" onclick="window.location.reload()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Scroll Calendar</span>
+        </div>
+
+        <div class="header-controls">
+            <div class="search-container">
+                <input type="text" id="date-search" class="search-input" placeholder="MMDD (例: 0325)" maxlength="4" pattern="[0-9]{4}">
+                <button id="search-button" class="search-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
+                <div id="error-message" class="error-message">有効な日付を入力してください</div>
+            </div>
+
+            <div class="mode-switch">
+                <div class="toggle-switch" id="toggle-mode" tabindex="0" role="switch" aria-checked="false" aria-label="ダークモード切替">
+                    <div class="toggle-switch-slider"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Calendar Container -->
+    <div class="calendar-container">
+        <div class="week-header">
+            <div id="today-date-display" class="today-date" tabindex="0" role="button" aria-label="今日の日付へスクロール">Today</div>
+            <div id="weekday-1">Mon</div>
+            <div id="weekday-2">Tue</div>
+            <div id="weekday-3">Wed</div>
+            <div id="weekday-4">Thu</div>
+            <div id="weekday-5">Fri</div>
+            <div id="weekday-6">Sat</div>
+            <div id="weekday-0">Sun</div>
+        </div>
+
+        <div id="calendar-grid-container" class="calendar-grid-container">
+            <div id="calendar-grid" class="calendar-grid">
+                <!-- Calendar grid will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const body = document.body;
+        const appHeader = document.querySelector('.app-header');
+        const calendarContainer = document.querySelector('.calendar-container');
+        const weekHeader = document.querySelector('.week-header');
+        const calendarGridContainer = document.getElementById('calendar-grid-container');
+        const calendarGrid = document.getElementById('calendar-grid');
+        const todayDateDisplay = document.getElementById('today-date-display');
+        const toggleModeSwitch = document.getElementById('toggle-mode');
+        const toggleSwitchSlider = document.querySelector('.toggle-switch-slider');
+        const searchInput = document.getElementById('date-search');
+        const searchButton = document.getElementById('search-button');
+        const errorMessage = document.getElementById('error-message');
+
+        // State Variables
+        let currentDate = new Date();
+        let events = {};
+        let isDarkMode = localStorage.getItem('darkMode') === 'true';
+        let highlightedWeek = null;
+        let selectedDays = new Set();
+        let dateElements = {};
+        
+        // Preload tooltips flag
+        let tooltipsPreloaded = false;
+
+        // Update Today's Date Display
+        function updateTodayDateDisplay() {
+            const today = new Date();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const date = String(today.getDate()).padStart(2, '0');
+
+            todayDateDisplay.textContent = `${month}/${date}`;
+            highlightTodayWeekday();
+        }
+
+        // Highlight Today's Weekday
+        function highlightTodayWeekday() {
+            document.querySelectorAll('.today-weekday').forEach(el => {
+                el.classList.remove('today-weekday');
+            });
+
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            const weekdayElement = document.getElementById(`weekday-${dayOfWeek}`);
+
+            if (weekdayElement) {
+                weekdayElement.classList.add('today-weekday');
+            }
+        }
+
+        // Apply Dark Mode
+        function applyDarkMode() {
+            const elementsToToggle = [
+                body, appHeader, calendarContainer, weekHeader, calendarGridContainer,
+                toggleModeSwitch, searchInput, searchButton, errorMessage, todayDateDisplay
+            ];
+
+            elementsToToggle.forEach(el => {
+                if (el) el.classList.toggle('dark-mode', isDarkMode);
+            });
+
+            // Toggle day elements if they exist
+            document.querySelectorAll('.day, .day-number, .month-column').forEach(el => {
+                el.classList.toggle('dark-mode', isDarkMode);
+            });
+
+            // Update toggle state
+            toggleModeSwitch.setAttribute('aria-checked', isDarkMode.toString());
+
+            // Save preference
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Fetch Holidays
+        async function fetchHolidays() {
+            try {
+                const response = await fetch('https://holidays-jp.github.io/api/v1/date.json');
+                const data = await response.json();
+                for (const date in data) {
+                    events[date] = [{ title: data[date], type: 'holiday' }];
+                }
+                generateCalendar();
+            } catch (error) {
+                console.error('Failed to fetch holiday data:', error);
+                generateCalendar();
+            }
+        }
+
+        // Get Week Number
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        // Generate Calendar
+        function generateCalendar() {
+            console.log('Generating calendar...');
+            calendarGrid.innerHTML = '';
+            dateElements = {};
+
+            updateTodayDateDisplay();
+
+            const startDateForDisplay = new Date(currentDate);
+            startDateForDisplay.setDate(startDateForDisplay.getDate() - 365);
+            
+            let endDate = new Date(currentDate);
+            endDate.setDate(endDate.getDate() + 365);
+
+            let currentDateIterator = new Date(startDateForDisplay);
+            let firstDayOfWeek = currentDateIterator.getDay();
+            let daysToMonday = (firstDayOfWeek + 6) % 7;
+            currentDateIterator.setDate(currentDateIterator.getDate() - daysToMonday);
+
+            for (let i = 0; i < 365 * 2; i++) {
+                if (i % 7 === 0) {
+                    // Week/Month column
+                    const weekMonthCell = document.createElement('div');
+                    weekMonthCell.classList.add('month-column');
+                    if (isDarkMode) {
+                        weekMonthCell.classList.add('dark-mode');
+                    }
+                    
+                    const weekNumber = getWeekNumber(currentDateIterator);
+                    const currentMonth = currentDateIterator.getMonth();
+                    const currentYear = currentDateIterator.getFullYear();
+                    const monthName = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][currentMonth];
+                    const monthStr = String(currentMonth + 1).padStart(2, '0');
+
+                    weekMonthCell.textContent = `${weekNumber}W\n${currentYear}/${monthStr}`;
+                    weekMonthCell.setAttribute('data-original-text', `${weekNumber}W\n${monthName}`);
+
+                    weekMonthCell.addEventListener('mouseover', function() {
+                        this.textContent = this.getAttribute('data-original-text');
+                    });
+
+                    weekMonthCell.addEventListener('mouseout', function() {
+                        this.textContent = `${weekNumber}W\n${currentYear}/${monthStr}`;
+                    });
+
+                    calendarGrid.appendChild(weekMonthCell);
+                }
+
+                // Create day cell
+                const day = document.createElement('div');
+                day.classList.add('day');
+                if (isDarkMode) {
+                    day.classList.add('dark-mode');
+                }
+
+                const year = currentDateIterator.getFullYear();
+                const month = currentDateIterator.getMonth();
+                const date = currentDateIterator.getDate();
+                const dayOfWeek = currentDateIterator.getDay();
+
+                const monthStr = String(month + 1).padStart(2, '0');
+                const dateStr = String(date).padStart(2, '0');
+                const fullDate = `${year}-${monthStr}-${dateStr}`;
+                const mmdd = `${monthStr}${dateStr}`;
+
+                dateElements[mmdd] = day;
+
+                // Check if it's a holiday
+                const holidayName = events[fullDate]?.[0]?.type === 'holiday' ? events[fullDate][0].title : null;
+                
+                // Create day number element
+                const dayNumber = document.createElement('div');
+                dayNumber.classList.add('day-number');
+                if (isDarkMode) {
+                    dayNumber.classList.add('dark-mode');
+                }
+                
+                // First day of month shows month/day
+                dayNumber.textContent = date === 1 ? `${month + 1}/${date}` : date;
+
+                // Add appropriate class based on day type
+                if (holidayName) {
+                    dayNumber.classList.add('holiday');
+                    day.setAttribute('title', holidayName);
+                } else if (dayOfWeek === 6) {
+                    dayNumber.classList.add('saturday');
+                } else if (dayOfWeek === 0) {
+                    dayNumber.classList.add('sunday');
+                }
+
+                // Mark today
+                if (year === currentDate.getFullYear() && month === currentDate.getMonth() && date === currentDate.getDate()) {
+                    day.classList.add('today');
+                }
+
+                // Add month class for styling
+                if (month % 2 === 0) {
+                    day.classList.add('even-month');
+                } else {
+                    day.classList.add('odd-month');
+                }
+
+                // Add tooltip information
+                const daysDifference = Math.ceil((currentDateIterator - currentDate) / (1000 * 60 * 60 * 24));
+                let tooltipText = `${fullDate} (${daysDifference > 0 ? '+' : ''}${daysDifference} day)`;
+                if (holidayName) {
+                    tooltipText += `\n${holidayName}`;
+                }
+                day.setAttribute('data-tooltip', tooltipText);
+                day.setAttribute('data-mmdd', mmdd);
+                day.setAttribute('data-date', fullDate);
+
+                day.appendChild(dayNumber);
+                calendarGrid.appendChild(day);
+
+                // Add event listeners
+                // Event listener for faster tooltip response
+                day.addEventListener('mouseenter', () => {
+                    // Week highlighting
+                    const weekIndex = Math.floor(i / 7);
+                    const weekCells = document.querySelectorAll('.month-column');
+                    if (weekCells[weekIndex]) {
+                        weekCells[weekIndex].style.transform = 'translateY(-2px)';
+                        weekCells[weekIndex].style.boxShadow = 'var(--shadow-md)';
+                        weekCells[weekIndex].style.borderColor = isDarkMode ? 'var(--primary-color)' : 'var(--primary-light)';
+                        highlightedWeek = weekCells[weekIndex];
+                    }
+                    
+                    // Immediately prime the tooltip
+                    day.setAttribute('data-tooltip-active', 'true');
+                });
+
+                day.addEventListener('mouseleave', () => {
+                    if (highlightedWeek) {
+                        highlightedWeek.style.transform = '';
+                        highlightedWeek.style.boxShadow = '';
+                        highlightedWeek.style.borderColor = isDarkMode ? 'var(--dark-border)' : 'var(--light-border)';
+                        highlightedWeek = null;
+                    }
+                    
+                    // Remove tooltip active state
+                    day.removeAttribute('data-tooltip-active');
+                });
+
+                // Touch support for mobile devices
+                day.addEventListener('touchstart', (e) => {
+                    // Remove active class from all days
+                    document.querySelectorAll('.day.active').forEach(el => {
+                        if (el !== day) el.classList.remove('active');
+                    });
+                    
+                    // Toggle active class on this day
+                    day.classList.toggle('active');
+                    e.preventDefault(); // Prevent default touch behavior
+                });
+
+                day.addEventListener('click', () => {
+                    if (selectedDays.has(day)) {
+                        day.classList.remove('selected');
+                        selectedDays.delete(day);
+                    } else {
+                        day.classList.add('selected');
+                        selectedDays.add(day);
+                    }
+                });
+
+                // Move to next day
+                currentDateIterator.setDate(currentDateIterator.getDate() + 1);
+            }
+
+            // Apply dark mode styles
+            applyDarkMode();
+            
+            // Scroll to today's date
+            scrollToToday();
+        }
+
+        // Scroll to Today's Date
+        function scrollToToday() {
+            const todayElement = Array.from(calendarGrid.children).find(child => child.classList.contains('today'));
+            if (todayElement) {
+                const gridContainer = document.getElementById('calendar-grid-container');
+                const targetOffsetTop = todayElement.offsetTop - (gridContainer.clientHeight / 2) + (todayElement.clientHeight / 2);
+                gridContainer.scrollTo({
+                    top: targetOffsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Scroll to Specified Date
+        function scrollToDate(mmdd) {
+            const targetElement = dateElements[mmdd];
+            if (targetElement) {
+                const gridContainer = document.getElementById('calendar-grid-container');
+                const targetOffsetTop = targetElement.offsetTop - (gridContainer.clientHeight / 2) + (targetElement.clientHeight / 2);
+                gridContainer.scrollTo({
+                    top: targetOffsetTop,
+                    behavior: 'smooth'
+                });
+
+                // Highlight the target date
+                targetElement.classList.add('highlight-day');
+                setTimeout(() => {
+                    targetElement.classList.remove('highlight-day');
+                }, 3000);
+
+                errorMessage.style.display = 'none';
+                return true;
+            } else {
+                errorMessage.style.display = 'block';
+                return false;
+            }
+        }
+
+        // Event Listeners
+        
+        // Today button click
+        todayDateDisplay.addEventListener('click', scrollToToday);
+        
+        // Search button click
+        searchButton.addEventListener('click', () => {
+            const mmdd = searchInput.value.trim();
+            if (/^\d{4}$/.test(mmdd)) {
+                const month = parseInt(mmdd.substring(0, 2));
+                const day = parseInt(mmdd.substring(2, 4));
+
+                // Check for valid month and day
+                if (month >= 1 && month <= 12) {
+                    // Get maximum days in month (using leap year)
+                    const maxDays = new Date(2024, month, 0).getDate();
+                    
+                    if (day >= 1 && day <= maxDays) {
+                        if (!scrollToDate(mmdd)) {
+                            errorMessage.textContent = '該当する日付が見つかりませんでした';
+                            errorMessage.style.display = 'block';
+                        }
+                    } else {
+                        errorMessage.textContent = `日付は1～${maxDays}の範囲で入力してください`;
+                        errorMessage.style.display = 'block';
+                    }
+                } else {
+                    errorMessage.textContent = '月は01～12の範囲で入力してください';
+                    errorMessage.style.display = 'block';
+                }
+            } else {
+                errorMessage.textContent = 'MMDD形式で入力してください (例: 0325)';
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        // Search input events
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchButton.click();
+            } else {
+                errorMessage.style.display = 'none';
+            }
+        });
+
+        searchInput.addEventListener('focus', () => {
+            errorMessage.style.display = 'none';
+        });
+
+        // Dark mode toggle
+        toggleModeSwitch.addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            applyDarkMode();
+        });
+
+        // Keyboard accessibility for toggle switch
+        toggleModeSwitch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleModeSwitch.click();
+            }
+        });
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply dark mode
+            applyDarkMode();
+            
+            // Update today's date display
+            updateTodayDateDisplay();
+            
+            // Fetch holidays and generate calendar
+            fetchHolidays();
+            
+            // Preload tooltips on visible cells after calendar is generated
+            setTimeout(() => {
+                preloadVisibleTooltips();
+            }, 1000);
+            
+            // Fallback to ensure calendar is generated
+            setTimeout(() => {
+                if (calendarGrid.children.length === 0) {
+                    console.log('Forcing calendar generation due to timeout');
+                    generateCalendar();
+                }
+            }, 3000);
+        });
+        
+        // Preload visible tooltips to reduce display latency
+        function preloadVisibleTooltips() {
+            if (tooltipsPreloaded) return;
+            
+            const visibleDays = document.querySelectorAll('.day');
+            
+            // Only preload the first 50 days to avoid performance issues
+            Array.from(visibleDays).slice(0, 50).forEach(day => {
+                // Create a pseudo-hover state to force browser to prepare tooltip rendering
+                day.style.willChange = 'transform';
+                
+                // Schedule removal of the rendering hint
+                setTimeout(() => {
+                    day.style.willChange = 'auto';
+                }, 100);
+            });
+            
+            tooltipsPreloaded = true;
+        }
+
+        // Handle page that might already be loaded
+        if (document.readyState !== 'loading') {
+            applyDarkMode();
+            updateTodayDateDisplay();
+            fetchHolidays();
+        }
+    </script>
+</body>
+</html>
